@@ -1,0 +1,68 @@
+# =========================================================
+# .gitignore — Physiological Emotion Recognition Pipeline
+# =========================================================
+
+# ---- Large dataset files (exceed GitHub 100MB limit) ----
+# Raw extracted features (Stage 1 output)
+eeg_features.csv
+eye_features.csv
+
+# Stage 2 normalized fold CSVs (each train_eeg is ~165MB)
+stage2_output/fold_*_train_eeg.csv
+stage2_output/fold_*_test_eeg.csv
+stage2_output/fold_*_validation_eeg.csv
+stage2_output/fold_*_train_eye.csv
+stage2_output/fold_*_test_eye.csv
+stage2_output/fold_*_validation_eye.csv
+stage2_output/validation_eeg.csv
+stage2_output/validation_eye.csv
+
+# Stage 3 large correlation matrices
+stage3_output/eeg_corr_matrix.csv
+
+# Raw .mat dataset files (never push source data)
+dataset_mat_files/
+
+# ---- Python cache / environment ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# ---- Virtual environments ----
+venv/
+env/
+.env/
+.venv/
+
+# ---- IDE / OS files ----
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Jupyter notebooks checkpoints ----
+.ipynb_checkpoints/
+
+# =========================================================
+# NOTE: The following ARE tracked (important outputs):
+#   - All *.py scripts
+#   - All *_report.md files
+#   - stage2_output/fold_manifest.json
+#   - stage2_output/verification_plots/
+#   - stage3_output/eeg_feature_significance.csv
+#   - stage3_output/eye_feature_significance.csv
+#   - stage3_output/eeg_high_corr_pairs.csv
+#   - stage3_output/eye_high_corr_pairs.csv
+#   - stage3_output/eeg_band_mean_per_emotion.csv
+#   - stage3_output/eye_corr_matrix.csv
+#   - stage3_output/plots/
+#   - stage4_output/*.csv
+# =========================================================
