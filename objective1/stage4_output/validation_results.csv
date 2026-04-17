@@ -1,0 +1,17 @@
+modality,model,agg_method,accuracy_mean,accuracy_std,precision_mean,precision_std,recall_mean,recall_std,f1_mean,f1_std
+eeg,SVM_RBF,majority,43.61,3.79,51.1,7.45,43.13,4.22,41.75,4.52
+eeg,SVM_RBF,proba_avg,43.33,3.97,51.08,6.54,42.64,4.15,41.1,4.72
+eeg,RandomForest,majority,45.28,3.35,49.84,3.43,43.94,3.29,40.67,4.88
+eeg,RandomForest,proba_avg,43.89,6.37,48.86,7.3,42.58,6.45,39.29,8.61
+eeg,LDA,majority,36.67,2.42,46.19,8.89,36.34,2.01,32.12,1.93
+eeg,LDA,proba_avg,35.83,3.22,45.09,8.91,35.53,2.86,31.91,3.77
+eeg,kNN,majority,26.11,3.67,23.78,3.85,25.5,3.63,23.86,3.39
+eeg,kNN,proba_avg,28.34,2.58,26.28,3.19,27.78,2.62,26.09,2.55
+eye,SVM_RBF,majority,32.5,4.08,31.0,7.8,31.62,3.73,26.68,6.29
+eye,SVM_RBF,proba_avg,31.94,4.21,33.48,10.09,31.2,3.96,24.88,5.19
+eye,RandomForest,majority,20.83,5.27,21.34,3.68,20.49,5.22,16.9,2.98
+eye,RandomForest,proba_avg,21.11,4.84,21.38,3.14,20.76,4.81,17.07,2.69
+eye,LDA,majority,46.67,6.78,46.75,7.54,46.96,7.27,45.68,6.98
+eye,LDA,proba_avg,46.11,6.83,46.17,7.57,46.39,7.35,45.08,7.07
+eye,kNN,majority,36.67,3.79,37.7,4.17,36.89,3.75,35.14,4.74
+eye,kNN,proba_avg,36.39,4.07,37.45,4.36,36.61,3.99,34.92,4.95

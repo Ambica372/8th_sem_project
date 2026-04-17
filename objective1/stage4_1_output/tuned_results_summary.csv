@@ -1,0 +1,9 @@
+modality,model,accuracy_mean,accuracy_std,precision_mean,precision_std,recall_mean,recall_std,f1_mean,f1_std,best_params_example
+eeg,LDA,31.94,0.57,39.99,7.04,32.1,0.89,29.32,2.92,default
+eeg,RandomForest,33.61,3.54,32.58,2.86,33.13,3.61,30.32,3.51,"{'n_estimators': 200, 'min_samples_split': 2, 'max_depth': 10}"
+eeg,SVM_RBF,32.08,5.2,31.86,3.51,31.88,4.94,29.55,4.09,"{'C': 10, 'gamma': 0.01}"
+eeg,kNN,26.62,1.82,24.71,3.29,26.19,2.02,24.19,2.39,"{'n_neighbors': 3, 'weights': 'distance'}"
+eye,LDA,43.1,3.16,45.12,3.82,42.97,3.33,42.2,4.06,default
+eye,RandomForest,43.33,3.08,44.32,2.76,43.12,3.21,42.39,3.19,"{'n_estimators': 200, 'min_samples_split': 2, 'max_depth': 20}"
+eye,SVM_RBF,44.63,4.0,45.38,3.68,44.83,4.07,43.72,3.7,"{'C': 10, 'gamma': 'scale'}"
+eye,kNN,38.47,5.09,38.76,5.68,38.53,5.13,38.05,5.45,"{'n_neighbors': 3, 'weights': 'distance'}"
