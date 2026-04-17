@@ -1,0 +1,3 @@
+Fold: 3
+Test Accuracy: 0.4852
+Best Val Acc: 0.4300

@@ -1,0 +1,14 @@
+Fold: 3
+Test Acc: 0.4795
+Best Val Acc: 0.4890
+
+              precision    recall  f1-score   support
+
+           0       0.46      0.56      0.51      1891
+           1       0.50      0.37      0.43      1902
+           2       0.48      0.43      0.45      1686
+           3       0.48      0.54      0.51      2031
+
+    accuracy                           0.48      7510
+   macro avg       0.48      0.48      0.48      7510
+weighted avg       0.48      0.48      0.48      7510
