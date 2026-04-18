@@ -1,8 +1,8 @@
-Stratified vs GroupKFold — Performance & Improvements Summary
+Stratified vs GroupKFold — Performance & Model Improvements
 
 ---
 
-📊 Accuracy Overview
+📊 Accuracy Comparison
 
 Method| Mean Accuracy| Highest Accuracy| Lowest Accuracy
 Stratified K-Fold| ~80% – 88%| ~85%| ~80%
@@ -10,7 +10,7 @@ Group K-Fold| 40.87%| 46.07%| 32.00%
 
 ---
 
-📈 GroupKFold Fold-wise Results
+📈 GroupKFold Fold-wise Accuracy
 
 Fold| Accuracy
 Fold 1| 46.07%
@@ -21,87 +21,87 @@ Fold 5| 38.98%
 
 ---
 
-⚙️ Implemented Changes (Our Model)
+⚙️ Implemented Changes
 
-Compared to the baseline (teammate Stratified pipeline), the following modifications were applied:
+The following improvements were applied over the baseline Stratified pipeline:
 
 🔹 Data Splitting
 
-- Replaced StratifiedKFold with GroupKFold
+- Switched from StratifiedKFold to GroupKFold
 - Ensured subject-wise separation across folds
 
 ---
 
-🔹 Model Architecture Improvements
+🔹 Model Architecture
 
-- Added Multimodal Fusion (EEG + Eye features)
-- Introduced Residual Blocks for deeper feature learning
-- Applied Cross-Modal Gating to weight EEG vs Eye inputs
-- Integrated Attention Mechanism for feature importance
-- Added Multi-Head Attention (2 heads) on fused features
-- Implemented ensemble inside model (2 classifier heads averaged)
+- Multimodal fusion of EEG + Eye features
+- Residual Blocks for deeper feature learning
+- Cross-Modal Gating for adaptive feature weighting
+- Attention Mechanism for feature importance
+- Multi-Head Attention (2 heads) on fused features
+- Dual classifier heads (ensemble averaging)
 
 ---
 
-🔹 Regularization & Stability
+🔹 Regularization
 
-- Feature Dropout (input-level regularization)
-- Batch Normalization across layers
-- Dropout (0.3) in deep fusion layers
-- Label Smoothing (0.05) to reduce overconfidence
+- Feature Dropout
+- Batch Normalization
+- Dropout (0.3)
+- Label Smoothing (0.05)
 
 ---
 
 🔹 Data Augmentation
 
 - MixUp augmentation (alpha = 0.4)
-- Random Gaussian noise injection during training and testing
+- Gaussian noise injection during training and testing
 
 ---
 
-🔹 Optimization Improvements
+🔹 Optimization
 
 - Optimizer: AdamW
 - Learning rate: 1e-4
-- Scheduler:
-  - CosineAnnealingLR (earlier)
-  - ReduceLROnPlateau (final version)
-- Gradient clipping (max_norm = 1.0)
-- Gradient accumulation (simulate larger batch)
+- Scheduler: ReduceLROnPlateau
+- Gradient clipping
+- Gradient accumulation
 
 ---
 
 🔹 Training Strategy
 
-- Added 10% validation split inside each fold
-- Implemented early stopping (patience = 10)
-- Best model selected based on validation loss
+- 10% validation split from training data
+- Early stopping (patience = 10)
+- Best model selected using validation loss
 
 ---
 
-🔹 Evaluation Enhancements
+🔹 Evaluation
 
-- Applied Test-Time Augmentation (TTA = 8 runs)
-- Final prediction = average of multiple noisy forward passes
+- Test-Time Augmentation (TTA = 8 runs)
+- Final prediction = average of multiple runs
 
 ---
 
 📌 Explanation
 
-- Stratified K-Fold maintains class balance but ignores subject grouping
-- GroupKFold enforces subject-level separation
+- Stratified K-Fold
+  
+  - Splits based on class distribution
+  - Produces higher and stable accuracy (~85%)
 
-Observed effect:
-
-- Stratified → higher, tightly clustered accuracy (~85%)
-- GroupKFold → lower but variable accuracy (32%–46%)
+- Group K-Fold
+  
+  - Splits based on subject groups
+  - Produces lower but more variable accuracy (32%–46%)
 
 ---
 
 📊 Final Summary
 
 - Highest observed accuracy: ~85% (Stratified K-Fold)
-- Highest fold accuracy (GroupKFold): 46.07%
-- Final mean accuracy (GroupKFold): 40.87%
+- Highest GroupKFold accuracy: 46.07%
+- Final GroupKFold mean accuracy: 40.87%
 
 ---
