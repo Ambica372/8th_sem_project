@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 =============================================================================
-Objective 2 — 5-Fold Stratified Cross-Validation Pipeline
+Objective 2 — Subject-Aware GroupKFold Cross-Validation Pipeline
 =============================================================================
 
-Data source  : objective2/processed_data/*.npy  (ONLY)
-Splitting    : StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-Preprocessing: Per-fold StandardScaler (fit on train, transform test)
+Data source  : objective1/eeg_features.csv + objective1/eye_features.csv
+Splitting    : GroupKFold(n_splits=5) — groups = subject_id
+               NO subject appears in both train and test within any fold!
+Preprocessing: Per-fold PCA (EEG), per-fold StandardScaler (fit on train)
 Models       : MLP, DNN, Attention, Hybrid, Decision Fusion (unchanged)
 Metrics      : Accuracy, Precision, Recall, F1  (macro average)
-Outputs      : cv_fold_results.csv, cv_summary_results.csv
+Outputs      : cv_fold_results.csv, cv_summary_results.csv, charts
 =============================================================================
 """
 
 import os
 import sys
+import json
 import numpy as np
 import pandas as pd
 import torch
@@ -26,7 +28,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import GroupKFold, train_test_split
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (accuracy_score, precision_score,
                              recall_score, f1_score, confusion_matrix,
@@ -38,25 +41,32 @@ if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 # ---------------------------------------------------------------------------
-# Paths  (ONLY objective2/ — no external imports)
+# Paths
 # ---------------------------------------------------------------------------
 OBJ2_DIR   = os.path.dirname(os.path.abspath(__file__))          # objective2/
-DATA_DIR   = os.path.join(OBJ2_DIR, "processed_data")
+OBJ1_DIR   = os.path.join(os.path.dirname(OBJ2_DIR), "objective1")
 OUTPUT_DIR = os.path.join(OBJ2_DIR, "stage4_cv")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+EEG_CSV = os.path.join(OBJ1_DIR, "eeg_features.csv")
+EYE_CSV = os.path.join(OBJ1_DIR, "eye_features.csv")
+
 # ---------------------------------------------------------------------------
-# Hyper-parameters  (UNCHANGED from original)
+# Hyper-parameters (UNCHANGED from original)
 # ---------------------------------------------------------------------------
-EPOCHS     = 30
-BATCH_SIZE = 64
-LR         = 1e-4
-N_SPLITS   = 5
-VAL_FRAC   = 0.1      # internal val split from training data
+EPOCHS       = 30
+BATCH_SIZE   = 64
+LR           = 1e-4
+N_SPLITS     = 5
+VAL_FRAC     = 0.1      # internal val split from training data
+PCA_VAR      = 0.95     # retain 95% variance for EEG PCA
 RANDOM_STATE = 42
 
 np.random.seed(RANDOM_STATE)
 torch.manual_seed(RANDOM_STATE)
+
+# Feature/meta column constants
+META_COLS = ["subject_id", "session_id", "trial_id", "window_id", "emotion_label"]
 
 
 def ensure_dir(p):
@@ -64,7 +74,7 @@ def ensure_dir(p):
 
 
 # =============================================================================
-# MODEL ARCHITECTURES  — identical to original run_models.py
+# MODEL ARCHITECTURES — identical to original run_models.py
 # =============================================================================
 
 class BaselineMLP(nn.Module):
@@ -140,60 +150,124 @@ class DecisionFusion(nn.Module):
 
 
 # =============================================================================
-# DATA LOADING
+# DATA LOADING  (from CSVs — preserves subject_id)
 # =============================================================================
 
 def load_data():
     """
-    Load all four .npy files from objective2/processed_data/.
-    Remove NaN/Inf rows consistently.
-    Returns clean X_fused, X_eeg, X_eye, y arrays.
+    Load EEG and Eye CSVs from objective1/.
+    Extract features, labels, and subject IDs.
+    Clean NaN/Inf rows consistently across both modalities.
+    Returns: X_eeg_raw, X_eye_raw, y, subjects  (all numpy arrays, aligned)
     """
-    print("[1] Loading data from objective2/processed_data/ ...")
-    X_fused = np.load(os.path.join(DATA_DIR, "X_fused.npy"))
-    X_eeg   = np.load(os.path.join(DATA_DIR, "X_eeg_pca.npy"))
-    X_eye   = np.load(os.path.join(DATA_DIR, "X_eye_clean.npy"))
-    y       = np.load(os.path.join(DATA_DIR, "y.npy"))
+    print("[1] Loading data from CSVs ...")
+    print(f"    EEG: {EEG_CSV}")
+    print(f"    Eye: {EYE_CSV}")
 
-    print(f"   Raw shapes  -> X_fused: {X_fused.shape} | X_eeg: {X_eeg.shape}"
-          f" | X_eye: {X_eye.shape} | y: {y.shape}")
+    eeg_df = pd.read_csv(EEG_CSV)
+    eye_df = pd.read_csv(EYE_CSV)
 
-    # Remove NaN / Inf rows consistently across all arrays
-    bad = (np.isnan(X_fused).any(axis=1) | np.isinf(X_fused).any(axis=1)
-         | np.isnan(X_eeg).any(axis=1)   | np.isinf(X_eeg).any(axis=1)
-         | np.isnan(X_eye).any(axis=1)   | np.isinf(X_eye).any(axis=1))
+    assert len(eeg_df) == len(eye_df), \
+        f"Row count mismatch: EEG={len(eeg_df)}, Eye={len(eye_df)}"
+
+    # Extract feature columns
+    eeg_feat_cols = [c for c in eeg_df.columns if c not in META_COLS]
+    eye_feat_cols = [c for c in eye_df.columns if c not in META_COLS]
+
+    X_eeg_raw = eeg_df[eeg_feat_cols].values.astype(np.float64)
+    X_eye_raw = eye_df[eye_feat_cols].values.astype(np.float64)
+    y         = eeg_df["emotion_label"].values.astype(np.int64)
+    subjects  = eeg_df["subject_id"].values.astype(np.int64)
+
+    print(f"    Raw shapes -> EEG: {X_eeg_raw.shape} | Eye: {X_eye_raw.shape}")
+    print(f"    Subjects: {sorted(np.unique(subjects).tolist())}")
+
+    # Remove NaN / Inf rows consistently across both modalities
+    bad = (np.isnan(X_eeg_raw).any(axis=1) | np.isinf(X_eeg_raw).any(axis=1)
+         | np.isnan(X_eye_raw).any(axis=1) | np.isinf(X_eye_raw).any(axis=1))
 
     n_removed = bad.sum()
-    X_fused, X_eeg, X_eye, y = (X_fused[~bad], X_eeg[~bad],
-                                  X_eye[~bad],   y[~bad])
+    X_eeg_raw = X_eeg_raw[~bad]
+    X_eye_raw = X_eye_raw[~bad]
+    y         = y[~bad]
+    subjects  = subjects[~bad]
 
-    print(f"   Removed {n_removed} corrupted rows -> {len(y)} clean samples")
+    print(f"    Removed {n_removed} corrupted rows -> {len(y)} clean samples")
 
-    # Validate no residual NaN/Inf
-    for name, arr in [("X_fused", X_fused), ("X_eeg", X_eeg), ("X_eye", X_eye)]:
+    # Validate
+    for name, arr in [("X_eeg", X_eeg_raw), ("X_eye", X_eye_raw)]:
         assert not np.isnan(arr).any() and not np.isinf(arr).any(), \
             f"NaN/Inf still present in {name} after cleaning"
 
     unique, counts = np.unique(y, return_counts=True)
-    print(f"   Classes: {dict(zip(unique.tolist(), counts.tolist()))}")
-    return X_fused, X_eeg, X_eye, y
+    print(f"    Classes: {dict(zip(unique.tolist(), counts.tolist()))}")
+    print(f"    Samples per subject:")
+    for s in sorted(np.unique(subjects)):
+        print(f"      Subject {s:2d}: {(subjects == s).sum()} samples")
+
+    return X_eeg_raw, X_eye_raw, y, subjects
 
 
 # =============================================================================
 # PER-FOLD PREPROCESSING  (NO LEAKAGE)
 # =============================================================================
 
-def scale_fold(X_tr, X_te, X_val=None):
+def preprocess_fold(X_eeg_tr, X_eye_tr, X_eeg_te, X_eye_te):
     """
-    Fit StandardScaler on X_tr only.
-    Apply to X_te (and optionally X_val).
+    Per-fold preprocessing:
+      1. PCA on training EEG only -> transform test
+      2. Eye imputation with train column means
+      3. Fuse EEG-PCA + Eye
+      4. Scale fused (train only)
+      5. Scale EEG-PCA and Eye separately for Decision Fusion
+    Returns dict of preprocessed arrays and dimensions.
     """
-    sc = StandardScaler()
-    X_tr_s = sc.fit_transform(X_tr)
-    X_te_s = sc.transform(X_te)
-    if X_val is not None:
-        return X_tr_s, X_te_s, sc.transform(X_val)
-    return X_tr_s, X_te_s
+    # --- PCA on EEG (fit on train only) ---
+    pca = PCA(n_components=PCA_VAR, random_state=RANDOM_STATE)
+    eeg_tr_pca = pca.fit_transform(X_eeg_tr)
+    eeg_te_pca = pca.transform(X_eeg_te)
+
+    # --- Eye imputation (train column means) ---
+    eye_train_mean = np.nanmean(X_eye_tr, axis=0)
+    X_eye_tr_clean = X_eye_tr.copy()
+    X_eye_te_clean = X_eye_te.copy()
+    for col in range(X_eye_tr.shape[1]):
+        X_eye_tr_clean[np.isnan(X_eye_tr_clean[:, col]), col] = eye_train_mean[col]
+        X_eye_te_clean[np.isnan(X_eye_te_clean[:, col]), col] = eye_train_mean[col]
+
+    # --- Fuse ---
+    fused_tr = np.hstack([eeg_tr_pca, X_eye_tr_clean])
+    fused_te = np.hstack([eeg_te_pca, X_eye_te_clean])
+
+    # --- Scale fused (fit on train only) ---
+    fused_sc = StandardScaler()
+    fused_tr = fused_sc.fit_transform(fused_tr)
+    fused_te = fused_sc.transform(fused_te)
+
+    # --- Scale EEG-PCA and Eye separately for Decision Fusion ---
+    eeg_sc = StandardScaler()
+    eeg_tr_s = eeg_sc.fit_transform(eeg_tr_pca)
+    eeg_te_s = eeg_sc.transform(eeg_te_pca)
+
+    eye_sc = StandardScaler()
+    eye_tr_s = eye_sc.fit_transform(X_eye_tr_clean)
+    eye_te_s = eye_sc.transform(X_eye_te_clean)
+
+    # Sanity checks
+    for tag, arr in [("fused_tr", fused_tr), ("fused_te", fused_te),
+                      ("eeg_tr", eeg_tr_s), ("eye_tr", eye_tr_s)]:
+        assert not np.isnan(arr).any(), f"NaN in {tag}"
+        assert not np.isinf(arr).any(), f"Inf in {tag}"
+
+    return {
+        "fused_tr": fused_tr, "fused_te": fused_te,
+        "eeg_tr": eeg_tr_s,   "eeg_te": eeg_te_s,
+        "eye_tr": eye_tr_s,   "eye_te": eye_te_s,
+        "fused_dim": fused_tr.shape[1],
+        "eeg_dim": eeg_tr_s.shape[1],
+        "eye_dim": eye_tr_s.shape[1],
+        "n_pca": eeg_tr_pca.shape[1],
+    }
 
 
 # =============================================================================
@@ -341,7 +415,7 @@ def train_eval_fold(model_name, model, fold_k,
 # =============================================================================
 
 def plot_cv_results(summary_df, out_dir):
-    """Bar chart — mean accuracy ± std for each model."""
+    """Bar chart — mean accuracy +/- std for each model."""
     models = summary_df["model"].tolist()
     means  = summary_df["mean_accuracy"].values * 100
     stds   = summary_df["std_accuracy"].values  * 100
@@ -349,7 +423,7 @@ def plot_cv_results(summary_df, out_dir):
     colors = ["#4C72B0", "#DD8452", "#55A868", "#C44E52", "#8172B2"]
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-    fig.suptitle("5-Fold CV Results — Objective 2 Multimodal Pipeline",
+    fig.suptitle("5-Fold Subject-Level GroupKFold CV — Objective 2",
                  fontsize=13, fontweight="bold")
 
     # Accuracy bar chart with error bars
@@ -358,7 +432,7 @@ def plot_cv_results(summary_df, out_dir):
                         error_kw={"ecolor": "black", "lw": 1.5})
     axes[0].axvline(25, color="gray", ls="--", lw=1, label="Chance (25%)")
     axes[0].set_xlabel("Mean Test Accuracy (%)", fontsize=11)
-    axes[0].set_title("Accuracy (mean ± std)", fontsize=11)
+    axes[0].set_title("Accuracy (mean +/- std)", fontsize=11)
     axes[0].set_xlim(0, 100)
     for bar, val in zip(bars, means):
         axes[0].text(val + 0.5, bar.get_y() + bar.get_height() / 2,
@@ -373,7 +447,7 @@ def plot_cv_results(summary_df, out_dir):
                           error_kw={"ecolor": "black", "lw": 1.5})
     axes[1].axvline(25, color="gray", ls="--", lw=1, label="Chance (25%)")
     axes[1].set_xlabel("Mean Macro F1-Score (%)", fontsize=11)
-    axes[1].set_title("F1-Score (mean ± std)", fontsize=11)
+    axes[1].set_title("F1-Score (mean +/- std)", fontsize=11)
     axes[1].set_xlim(0, 100)
     for bar, val in zip(bars2, f1_means):
         axes[1].text(val + 0.5, bar.get_y() + bar.get_height() / 2,
@@ -403,7 +477,7 @@ def plot_fold_variance(fold_df, out_dir):
     ax.set_xticklabels(models, fontsize=10)
     ax.set_ylabel("Test Accuracy per Fold (%)", fontsize=11)
     ax.set_title("Fold-Level Accuracy Distribution per Model\n"
-                 "(5-Fold Stratified CV)", fontsize=12, fontweight="bold")
+                 "(Subject-Level GroupKFold CV)", fontsize=12, fontweight="bold")
     ax.axhline(25, color="gray", ls="--", lw=1, label="Chance (25%)")
     ax.legend()
     ax.grid(axis="y", alpha=0.3)
@@ -414,100 +488,94 @@ def plot_fold_variance(fold_df, out_dir):
 
 
 # =============================================================================
-# MAIN  —  5-FOLD CROSS-VALIDATION LOOP
+# MAIN — SUBJECT-AWARE GroupKFold CROSS-VALIDATION
 # =============================================================================
 
 def main():
     print("=" * 65)
-    print(" OBJECTIVE 2 — 5-FOLD STRATIFIED CROSS-VALIDATION")
+    print(" OBJECTIVE 2 — SUBJECT-AWARE GroupKFold CROSS-VALIDATION")
     print("=" * 65)
-    print(f" Data dir   : {DATA_DIR}")
     print(f" Output dir : {OUTPUT_DIR}")
     print(f" Folds      : {N_SPLITS} | Epochs: {EPOCHS}"
           f" | Batch: {BATCH_SIZE} | LR: {LR}")
     print(f" Val split  : {VAL_FRAC*100:.0f}% of training fold (stratified)")
+    print(f" PCA retain : {PCA_VAR*100:.0f}% variance")
     print(f" Metrics    : Accuracy, Precision, Recall, F1  (macro)")
     print()
 
     # ------------------------------------------------------------------
-    # 1. Load data
+    # 1. Load data (from CSVs with subject_id)
     # ------------------------------------------------------------------
-    X_fused, X_eeg, X_eye, y = load_data()
-    n_samples     = len(y)
-    fused_dim     = X_fused.shape[1]
-    eeg_dim       = X_eeg.shape[1]
-    eye_dim       = X_eye.shape[1]
-
-    print(f"\n   fused_dim={fused_dim} | eeg_dim={eeg_dim} | eye_dim={eye_dim}")
+    X_eeg_raw, X_eye_raw, y, subjects = load_data()
+    n_samples = len(y)
 
     # ------------------------------------------------------------------
-    # 2. Define fold splitter
+    # 2. Define GroupKFold splitter (groups = subjects)
     # ------------------------------------------------------------------
-    skf = StratifiedKFold(n_splits=N_SPLITS, shuffle=True,
-                          random_state=RANDOM_STATE)
+    gkf = GroupKFold(n_splits=N_SPLITS)
 
-    # Model factory — fresh model for every fold
-    def make_models():
-        return [
-            ("MLP",            BaselineMLP(fused_dim),  "mlp"),
-            ("DNN",            DeepDNN(fused_dim),       "dnn"),
-            ("Attention",      AttentionModel(fused_dim),"attention"),
-            ("Hybrid",         HybridModel(fused_dim),   "hybrid"),
-            ("Decision Fusion",DecisionFusion(eeg_dim, eye_dim), "decision_fusion"),
-        ]
-
+    # Model factory — fresh model for every fold (dim set per-fold after PCA)
     model_names = ["MLP", "DNN", "Attention", "Hybrid", "Decision Fusion"]
 
     # Collect per-fold results
     all_fold_rows = []
-    # Accumulate per-model across folds
     per_model = {n: {"acc": [], "prec": [], "rec": [], "f1": []}
                  for n in model_names}
 
     # ------------------------------------------------------------------
-    # 3. Cross-validation loop
+    # 3. Cross-validation loop (SUBJECT-AWARE)
     # ------------------------------------------------------------------
     for fold_k, (train_idx, test_idx) in enumerate(
-            skf.split(X_fused, y), start=1):
+            gkf.split(X_eeg_raw, y, groups=subjects), start=1):
+
+        train_subjects = np.unique(subjects[train_idx])
+        test_subjects  = np.unique(subjects[test_idx])
+        overlap        = set(train_subjects.tolist()) & set(test_subjects.tolist())
 
         print(f"\n{'='*65}")
         print(f" FOLD {fold_k} / {N_SPLITS}")
         print(f"  Train samples : {len(train_idx)}"
               f"  |  Test samples : {len(test_idx)}")
+        print(f"  Train subjects: {sorted(train_subjects.tolist())}")
+        print(f"  Test  subjects: {sorted(test_subjects.tolist())}")
+        print(f"  Subject overlap (MUST be empty): {overlap}")
+        assert len(overlap) == 0, \
+            f"SUBJECT LEAKAGE in fold {fold_k}: {overlap}"
+
+        # --- Class distribution per fold ---
+        tr_unique, tr_counts = np.unique(y[train_idx], return_counts=True)
+        te_unique, te_counts = np.unique(y[test_idx], return_counts=True)
+        print(f"  Train class dist: {dict(zip(tr_unique.tolist(), tr_counts.tolist()))}")
+        print(f"  Test  class dist: {dict(zip(te_unique.tolist(), te_counts.tolist()))}")
 
         # ---- Step 1: raw split ------------------------------------------
-        # Fused
-        Xf_train_raw  = X_fused[train_idx]
-        Xf_test_raw   = X_fused[test_idx]
-        # EEG (for Decision Fusion)
-        Xe_train_raw  = X_eeg[train_idx]
-        Xe_test_raw   = X_eeg[test_idx]
-        # Eye (for Decision Fusion)
-        Xey_train_raw = X_eye[train_idx]
-        Xey_test_raw  = X_eye[test_idx]
-        # Labels
-        y_train = y[train_idx]
-        y_test  = y[test_idx]
+        eeg_tr_raw = X_eeg_raw[train_idx]
+        eeg_te_raw = X_eeg_raw[test_idx]
+        eye_tr_raw = X_eye_raw[train_idx]
+        eye_te_raw = X_eye_raw[test_idx]
+        y_train    = y[train_idx]
+        y_test     = y[test_idx]
 
-        # ---- Step 2: per-fold scaling (NO LEAKAGE) ----------------------
-        # Fused scaler — fit on train fold only
-        Xf_train, Xf_test = scale_fold(Xf_train_raw, Xf_test_raw)
-        # EEG scaler
-        Xe_train, Xe_test = scale_fold(Xe_train_raw,  Xe_test_raw)
-        # Eye scaler
-        Xey_train, Xey_test = scale_fold(Xey_train_raw, Xey_test_raw)
+        # ---- Step 2: per-fold preprocessing (PCA + scaling, NO LEAKAGE) ---
+        data = preprocess_fold(eeg_tr_raw, eye_tr_raw, eeg_te_raw, eye_te_raw)
 
-        # Sanity checks
-        for tag, arr in [("Xf_train", Xf_train), ("Xf_test", Xf_test),
-                          ("Xe_train", Xe_train), ("Xey_train", Xey_train)]:
-            assert not np.isnan(arr).any(), f"NaN in {tag} fold {fold_k}"
-            assert not np.isinf(arr).any(), f"Inf in {tag} fold {fold_k}"
+        fused_dim = data["fused_dim"]
+        eeg_dim   = data["eeg_dim"]
+        eye_dim   = data["eye_dim"]
 
-        print(f"  Scaling: fit on train fold only  ->  "
-              f"fused={Xf_train.shape} | eeg={Xe_train.shape}"
-              f" | eye={Xey_train.shape}")
+        print(f"  Preprocessing done: PCA -> {data['n_pca']} components | "
+              f"fused_dim={fused_dim} | eeg_dim={eeg_dim} | eye_dim={eye_dim}")
 
         # ---- Step 3: train / evaluate each model on this fold -----------
+        def make_models():
+            return [
+                ("MLP",             BaselineMLP(fused_dim),   "mlp"),
+                ("DNN",             DeepDNN(fused_dim),       "dnn"),
+                ("Attention",       AttentionModel(fused_dim), "attention"),
+                ("Hybrid",          HybridModel(fused_dim),   "hybrid"),
+                ("Decision Fusion", DecisionFusion(eeg_dim, eye_dim), "decision_fusion"),
+            ]
+
         models = make_models()
 
         for model_name, model, folder in models:
@@ -518,14 +586,14 @@ def main():
             if is_dec:
                 acc, prec, rec, f1 = train_eval_fold(
                     model_name, model, fold_k,
-                    Xe_train, y_train, Xe_test, y_test,
+                    data["eeg_tr"], y_train, data["eeg_te"], y_test,
                     model_dir,
-                    X2tr=Xey_train, X2te=Xey_test
+                    X2tr=data["eye_tr"], X2te=data["eye_te"]
                 )
             else:
                 acc, prec, rec, f1 = train_eval_fold(
                     model_name, model, fold_k,
-                    Xf_train, y_train, Xf_test, y_test,
+                    data["fused_tr"], y_train, data["fused_te"], y_test,
                     model_dir
                 )
 
@@ -581,14 +649,14 @@ def main():
     # 6. Print final summary table
     # ------------------------------------------------------------------
     print("\n" + "=" * 65)
-    print(" FINAL 5-FOLD CV SUMMARY")
+    print(" FINAL SUBJECT-LEVEL GroupKFold CV SUMMARY")
     print("=" * 65)
-    print(f"  {'Model':<20} {'Acc (mean±std)':>18} {'F1 (mean±std)':>18}")
+    print(f"  {'Model':<20} {'Acc (mean+/-std)':>18} {'F1 (mean+/-std)':>18}")
     print(f"  {'-'*58}")
     for row in summary_rows:
         print(f"  {row['model']:<20} "
-              f"{row['mean_accuracy']*100:>7.2f}% ± {row['std_accuracy']*100:>5.2f}%"
-              f"   {row['mean_f1']*100:>7.2f}% ± {row['std_f1']*100:>5.2f}%")
+              f"{row['mean_accuracy']*100:>7.2f}% +/- {row['std_accuracy']*100:>5.2f}%"
+              f"   {row['mean_f1']*100:>7.2f}% +/- {row['std_f1']*100:>5.2f}%")
 
     # ------------------------------------------------------------------
     # 7. Verify results differ across folds (sanity check)
@@ -609,7 +677,7 @@ def main():
     plot_fold_variance(fold_df, OUTPUT_DIR)
 
     print("\n" + "=" * 65)
-    print(" PIPELINE COMPLETE")
+    print(" PIPELINE COMPLETE — NO SUBJECT LEAKAGE")
     print(f" Outputs in: {OUTPUT_DIR}")
     print("=" * 65)
 
