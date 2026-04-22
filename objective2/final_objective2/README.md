@@ -1,566 +1,246 @@
-🎯 Objective 2 — Multimodal Emotion Classification
+Objective 2 — Multimodal Emotion Classification
 
 
-EEG + Eye Tracking using Deep Learning
+Stratified K-Fold + LOSO Rotation
 
 
 
-📊 Final Results
+📊 Results
 
 
 
 
 Model
-Accuracy (Mean ± Std)
-F1 Score (Mean ± Std)
+Accuracy
 
 
 
 
 MLP
-80–81%
 ~80%
 
 
 DNN
-81–82%
-~81%
+~82%
 
 
 Attention
-85–86%
 ~85%
 
 
 Hybrid ⭐
-86–88%
-~87%
+~86–88%
 
 
 Decision Fusion
 ~81%
-~81%
 
 
 
 
-👉 Best Model: Hybrid (Attention + Dense)
 
-
-
-🧠 Problem Statement
-
-
-Classify human emotions using multimodal physiological signals:
+🧠 Data
 
 
 
 
-Modality
-Description
+EEG (PCA reduced)
 
 
-
-
-EEG
-Brain activity signals
-
-
-Eye
 Eye-tracking features
 
 
+Combined → X_fused
 
 
-Classes (4): Neutral, Sad, Fear, Happy
+4 classes: Neutral, Sad, Fear, Happy
 
 
 
-📁 Dataset
 
 
+⚙️ Method
 
 
-File
-Description
-Shape
+Fusion
 
 
 
 
-X_fused.npy
-EEG + Eye combined
-(N, 58)
+Feature Fusion → EEG + Eye combined
 
 
-X_eeg_pca.npy
-EEG (PCA reduced)
-(N, 29)
+Decision Fusion → Separate branches, outputs averaged
 
 
-X_eye_clean.npy
-Eye features
-(N, 29)
 
 
-y.npy
-Labels
-(N,)
+Models
 
 
 
 
-Total samples: ~37,500
+MLP, DNN, Attention, Hybrid, Decision Fusion
 
-Class distribution: Balanced
 
 
 
-⚙️ Methodology
 
+🔧 Training
 
 
-🔹 1. Feature Fusion
 
 
+Optimizer: AdamW
 
 
-Fusion Type
-Description
-Used In
+LR: 5e-5
 
 
+Weight Decay: 1e-4
 
 
-Feature Fusion (Early)
-EEG + Eye concatenated
-MLP, DNN, Attention, Hybrid
+Batch Size: 64
 
 
-Decision Fusion (Late)
-Separate branches, outputs averaged
-Decision Fusion Model
+Epochs: 60
 
 
 
 
+Regularization
 
-🔹 2. Models Implemented
 
 
 
-
-Model
-Key Idea
-
-
-
-
-MLP
-Baseline fully connected network
-
-
-DNN
-Deeper architecture
-
-
-Attention
-Learns feature importance
-
-
-Hybrid ⭐
-Combines attention + dense
-
-
-Decision Fusion
-Separate EEG & Eye networks
-
-
-
-
-
-🔹 3. Training Configuration
-
-
-
-
-Parameter
-Value
-
-
-
-
-Optimizer
-AdamW
-
-
-Learning Rate
-5e-5
-
-
-Weight Decay
-1e-4
-
-
-Batch Size
-64
-
-
-Epochs
-60
-
-
-
-
-
-🔹 4. Regularization & Stability
-
-
-
-
-Technique
-Purpose
-
-
-
-
-Batch Normalization
-Stabilizes training
+BatchNorm
 
 
 Dropout (0.3)
-Prevents overfitting
 
 
 Gradient Clipping
-Avoids exploding gradients
 
 
 Early Stopping
-Stops over-training
 
 
 LR Scheduler
-Adjusts learning rate dynamically
 
 
 Class Weights
-Handles imbalance
 
 
 
 
 
-🔹 5. Data Preprocessing
+🧹 Preprocessing
 
 
 
 
-Removed NaN / Inf values
+Removed NaN / Inf
 
 
-Ensured alignment across:
+StandardScaler (per fold, no leakage)
 
 
 
-EEG
 
 
-Eye
+🔁 Validation (FINAL)
 
 
-Labels
+Step 1: LOSO
 
 
 
 
+1 subject = test
 
 
-Applied StandardScaler per fold
+Remaining = train
 
 
 
-Fit only on training data
 
+Step 2: Stratified K-Fold
 
-Applied to test data
 
 
 
+Applied on training data (5-fold)
 
 
 
 
+Pipeline
 
-👉 Prevents data leakage
 
 
 
-🔁 Validation Strategy
+Hold 1 subject out
 
 
+Train using Stratified K-Fold
 
-✅ Stratified K-Fold (Primary)
 
+Evaluate
 
 
+Repeat for subjects
 
-Parameter
-Value
 
 
 
 
-Splits
-5
+🎯 Key Point
 
 
-Type
-Window-level
 
 
-Shuffle
-Yes
+Stratified alone → inflated accuracy (same subject in train/test)
 
 
+LOSO + Stratified → realistic + stable evaluation
 
 
-👉 Maintains class balance
 
-👉 Produces high accuracy (80–88%)
 
 
+🧠 Conclusion
 
-🔁 LOSO-style Subject Rotation
 
 
 
-
-Concept
-Description
-
-
-
-
-Split
-One subject as test
-
-
-Train
-Remaining subjects
-
-
-Purpose
-Stability check
-
-
-
-
-👉 Checks if model performance is consistent across subjects
-
-
-
-⚠️ Important Observation
-
-
-Why Stratified Accuracy is High
-
-
-
-
-Same subject appears in train & test
-
-
-Model learns subject-specific patterns
-
-
-
-
-👉 Leads to inflated accuracy
-
-
-
-Why LOSO is Important
-
-
-
-
-No subject overlap
-
-
-Tests true generalization
-
-
-
-
-👉 Accuracy drops but becomes realistic
-
-
-
-📈 Performance Interpretation
-
-
-
-
-Metric
-Value
-
-
-
-
-Random Baseline
-25%
-
-
-Achieved Accuracy
-80–88%
-
-
-
-
-👉 Model learns meaningful patterns
-
-⚠️ But stratified results are optimistic
-
-
-
-⚖️ Comparison
-
-
-
-
-Aspect
-Stratified K-Fold
-LOSO
-
-
-
-
-Split Type
-Window-level
-Subject-level
-
-
-Accuracy
-High
-Lower
-
-
-Leakage
-Present
-Removed
-
-
-Reliability
-Medium
-High
-
-
-Real-world validity
-❌
-✅
-
-
-
-
-
-📊 Key Insights
-
-
-
-
-Hybrid model performs best consistently
-
-
-Attention improves feature learning
+Hybrid model performs best
 
 
 Multimodal fusion improves accuracy
 
 
-Regularization stabilizes training
-
-
-Results are consistent across folds
+Final pipeline is stable and reliable
 
 
 
 
 
-📁 Outputs Generated
+📁 Outputs
 
 
 
 
-File
-Description
+Fold results
 
 
-
-
-cv_fold_results.csv
-Fold-wise metrics
-
-
-cv_summary_results.csv
-Final summary
-
-
-cv_performance_chart.png
-Accuracy/F1 comparison
-
-
-cv_fold_variance.png
-Fold stability
-
-
-.pth files
-Model checkpoints
+Summary results
 
 
 Confusion matrices
-Per fold
 
 
-Reports
-Classification reports
+Model checkpoints
 
 
-
-
-
-🧠 Final Conclusion
-
-
-
-
-Multimodal learning improves emotion classification
-
-
-Hybrid model achieves best performance (~87%)
-
-
-Stratified K-Fold gives strong benchmark results
-
-
-LOSO ensures robustness validation
-
-
-Pipeline is optimized and stable
-
-
-
-
-
-🚀 Status
-
-
-✅ Objective 2 Completed
-
-✅ Models trained and evaluated
-
-✅ Performance optimized
-
-✅ Stability verified
 
 
