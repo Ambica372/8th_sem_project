@@ -67,11 +67,10 @@ Combined → X_fused
 
 
 
-Feature Fusion → EEG + Eye combined
+Feature Fusion: EEG + Eye combined
 
 
-Decision Fusion → Separate branches, outputs averaged
-
+Decision Fusion: Separate branches, outputs averaged
 
 
 
@@ -166,9 +165,6 @@ Class Weights
 Removed NaN / Inf
 
 
-Ensured data alignment
-
-
 Applied StandardScaler (per fold)
 
 
@@ -186,10 +182,10 @@ Transform test
 
 
 
-🔁 Validation (FINAL)
+🔁 Validation
 
 
-Step 1: LOSO (Subject Split)
+Step 1: LOSO
 
 
 
@@ -202,22 +198,17 @@ Remaining → train
 
 
 
-
 Step 2: Stratified K-Fold
 
 
 
 
-5-fold split
-
-
-Applied only on training data
+5-fold on training data
 
 
 
 
-
-🔄 Pipeline
+Pipeline
 
 
 
@@ -225,30 +216,13 @@ Applied only on training data
 Hold 1 subject out
 
 
-Apply Stratified K-Fold on remaining data
+Apply Stratified K-Fold
 
 
-Train models
+Train & evaluate
 
 
-Evaluate
-
-
-Repeat across subjects
-
-
-
-
-
-🎯 Key Point
-
-
-
-
-Stratified alone → inflated accuracy
-
-
-LOSO + Stratified → realistic + stable
+Repeat
 
 
 
@@ -262,10 +236,10 @@ LOSO + Stratified → realistic + stable
 Hybrid model performs best
 
 
-Multimodal fusion improves accuracy
+Multimodal fusion improves performance
 
 
-Final pipeline is stable and reliable
+Pipeline is stable and reliable
 
 
 
