@@ -1,7 +1,7 @@
 # -- coding: utf-8 --
 """
 =============================================================================
-Objective 2 — 5-Fold Stratified Cross-Validation Pipeline
+Objective 2 â€” 5-Fold Stratified Cross-Validation Pipeline
 VERSION 1: This version uses StratifiedKFold (window-based splitting)
 =============================================================================
 
@@ -41,7 +41,7 @@ if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 # ---------------------------------------------------------------------------
-# Paths  — auto-discover data directory
+# Paths  â€” auto-discover data directory
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(file_))
 
@@ -90,7 +90,7 @@ def ensure_dir(p):
 
 
 # =============================================================================
-# MODEL ARCHITECTURES — hidden: 128, BatchNorm, Dropout=0.3
+# MODEL ARCHITECTURES â€” hidden: 128, BatchNorm, Dropout=0.3
 # =============================================================================
 
 class BaselineMLP(nn.Module):
@@ -427,7 +427,7 @@ def plot_fold_variance(fold_df, out_dir):
     ax.set_xticks(range(1, len(models) + 1))
     ax.set_xticklabels(models, fontsize=10)
     ax.set_ylabel("Test Accuracy per Fold (%)")
-    ax.set_title("Fold-Level Accuracy — StratifiedKFold", fontsize=12, fontweight="bold")
+    ax.set_title("Fold-Level Accuracy â€” StratifiedKFold", fontsize=12, fontweight="bold")
     ax.axhline(25, color="gray", ls="--", lw=1, label="Chance (25%)")
     ax.legend(); ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
@@ -443,7 +443,7 @@ def plot_fold_variance(fold_df, out_dir):
 def main():
     # This version uses StratifiedKFold (window-based splitting)
     print("=" * 65)
-    print(" VERSION 1 — StratifiedKFold (window-based splitting)")
+    print(" VERSION 1 â€” StratifiedKFold (window-based splitting)")
     print("=" * 65)
     print(" Data dir   : {}".format(DATA_DIR))
     print(" Output dir : {}".format(OUTPUT_DIR))
@@ -608,7 +608,7 @@ def main():
     print("  Saved: cv_summary_results.csv")
 
     print("\n" + "=" * 65)
-    print(" FINAL SUMMARY — StratifiedKFold (window-based splitting)")
+    print(" FINAL SUMMARY â€” StratifiedKFold (window-based splitting)")
     print("=" * 65)
     print("  {:<20} {:>18} {:>18}".format("Model", "Acc (mean+/-std)", "F1 (mean+/-std)"))
     print("  " + "-" * 58)
@@ -633,7 +633,7 @@ def main():
     plot_fold_variance(fold_df, OUTPUT_DIR)
 
     print("\n" + "=" * 65)
-    print(" PIPELINE COMPLETE — StratifiedKFold")
+    print(" PIPELINE COMPLETE â€” StratifiedKFold")
     print(" Outputs in: {}".format(OUTPUT_DIR))
     print("=" * 65)
 
