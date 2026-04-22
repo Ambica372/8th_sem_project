@@ -29,7 +29,6 @@
 ### 🔹 Fusion
 
 - **Feature Fusion:** EEG + Eye combined  
-- **Decision Fusion:** Separate branches, outputs averaged  
 
 ---
 
