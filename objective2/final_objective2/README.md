@@ -62,7 +62,7 @@ Combined → X_fused
 ⚙️ Method
 
 
-Fusion
+🔹 Fusion
 
 
 
@@ -75,12 +75,25 @@ Decision Fusion → Separate branches, outputs averaged
 
 
 
-Models
+
+🔹 Models
 
 
 
 
-MLP, DNN, Attention, Hybrid, Decision Fusion
+MLP
+
+
+DNN
+
+
+Attention Model
+
+
+Hybrid Model ⭐
+
+
+Decision Fusion Model
 
 
 
@@ -91,19 +104,30 @@ MLP, DNN, Attention, Hybrid, Decision Fusion
 
 
 
-Optimizer: AdamW
+Parameter
+Value
 
 
-LR: 5e-5
 
 
-Weight Decay: 1e-4
+Optimizer
+AdamW
 
 
-Batch Size: 64
+Learning Rate
+5e-5
 
 
-Epochs: 60
+Weight Decay
+1e-4
+
+
+Batch Size
+64
+
+
+Epochs
+60
 
 
 
@@ -113,7 +137,7 @@ Regularization
 
 
 
-BatchNorm
+Batch Normalization
 
 
 Dropout (0.3)
@@ -142,7 +166,21 @@ Class Weights
 Removed NaN / Inf
 
 
-StandardScaler (per fold, no leakage)
+Ensured data alignment
+
+
+Applied StandardScaler (per fold)
+
+
+
+Fit on training
+
+
+Transform test
+
+
+
+
 
 
 
@@ -151,15 +189,16 @@ StandardScaler (per fold, no leakage)
 🔁 Validation (FINAL)
 
 
-Step 1: LOSO
+Step 1: LOSO (Subject Split)
 
 
 
 
-1 subject = test
+1 subject → test
 
 
-Remaining = train
+Remaining → train
+
 
 
 
@@ -169,12 +208,16 @@ Step 2: Stratified K-Fold
 
 
 
-Applied on training data (5-fold)
+5-fold split
+
+
+Applied only on training data
 
 
 
 
-Pipeline
+
+🔄 Pipeline
 
 
 
@@ -182,13 +225,16 @@ Pipeline
 Hold 1 subject out
 
 
-Train using Stratified K-Fold
+Apply Stratified K-Fold on remaining data
+
+
+Train models
 
 
 Evaluate
 
 
-Repeat for subjects
+Repeat across subjects
 
 
 
@@ -199,10 +245,10 @@ Repeat for subjects
 
 
 
-Stratified alone → inflated accuracy (same subject in train/test)
+Stratified alone → inflated accuracy
 
 
-LOSO + Stratified → realistic + stable evaluation
+LOSO + Stratified → realistic + stable
 
 
 
@@ -230,10 +276,10 @@ Final pipeline is stable and reliable
 
 
 
-Fold results
+cv_fold_results.csv
 
 
-Summary results
+cv_summary_results.csv
 
 
 Confusion matrices
