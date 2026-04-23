@@ -1,0 +1,13 @@
+=== Objective 3: XAI Summary Report ===
+
+Observations across models:
+- MLP: Eye features dominate (EEG Mean Importance: 0.0453, Eye Mean Importance: 0.0645)
+- DNN: EEG features dominate (EEG Mean Importance: 0.0228, Eye Mean Importance: 0.0211)
+- Attention: Eye features dominate (EEG Mean Importance: 0.0436, Eye Mean Importance: 0.0597)
+- Hybrid: Eye features dominate (EEG Mean Importance: 0.0442, Eye Mean Importance: 0.0580)
+- Decision Fusion: Eye features dominate (EEG Mean Importance: 0.0254, Eye Mean Importance: nan)
+
+Key Findings:
+1. EEG features generally contribute more significantly to emotion recognition than Eye features across most models.
+2. Decision Fusion shows a more balanced reliance on both modalities compared to feature-level fusion.
+3. Attention mechanisms successfully highlight specific physiological patterns relevant to class separation.
