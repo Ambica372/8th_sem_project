@@ -114,19 +114,6 @@ output = (eeg_stream_logits + eye_stream_logits) / 2
 
 ---
 
-## Results — GroupKFold (LASO)
-
-*Computed across all 15 folds (15 subjects × 5 models = 75 evaluations)*
-
-| Model | Mean Accuracy | Std Dev |
-|---|---|---|
-| MLP | 34.93% | ±5.14% |
-| DNN | 35.69% | ±4.37% |
-| Attention | 36.43% | ±4.79% |
-| **Hybrid** | 34.02% | ±4.47% |
-| **Decision Fusion** | **40.30%** | **±6.14%** |
-| **Overall mean** | **36.27%** | — |
-
 ### Key Observations
 
 1. **Decision Fusion consistently outperforms all feature-fusion models** (+3–6 pp over Attention), demonstrating that keeping modalities separate preserves complementary information
