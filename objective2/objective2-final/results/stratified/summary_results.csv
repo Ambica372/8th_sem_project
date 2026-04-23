@@ -1,0 +1,6 @@
+model,mean_accuracy,std_accuracy
+MLP,0.3502,0.0255
+DNN,0.3483,0.0068
+Attention,0.3295,0.0131
+Hybrid,0.3445,0.0145
+Decision Fusion,0.4034,0.0281

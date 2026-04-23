@@ -1,0 +1,4 @@
+- Dataset: EEG + Eye tracking (Multimodal)
+- Features: Differential Entropy (DE) and Power Spectral Density (PSD)
+- Preprocessing: Per-fold scaling and PCA reduction (EEG)
+- Source: SEED-IV Dataset (Objective 2)
