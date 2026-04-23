@@ -1,0 +1,17 @@
+{
+  "eeg_root": "C:\\Users\\Rose J Thachil\\Desktop\\8th_sem_project\\raw_data_project\\dataset\\eeg_raw_data",
+  "eye_root": "C:\\Users\\Rose J Thachil\\Desktop\\8th_sem_project\\raw_data_project\\dataset\\eye_raw_data",
+  "output_dir": "C:\\Users\\Rose J Thachil\\Desktop\\8th_sem_project\\raw_data_project\\obj2",
+  "sfreq": 200,
+  "epoch_len_sec": 4,
+  "epoch_overlap": 0.5,
+  "n_eeg_channels": 62,
+  "eye_feature_dim": 5,
+  "n_classes": 4,
+  "n_folds": 5,
+  "epochs": 30,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "random_state": 42,
+  "timestamp": "20260423_131614"
+}

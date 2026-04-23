@@ -1,0 +1,93 @@
+timestamp,level,message
+13:16:14,INFO,============================================================
+13:16:14,INFO,DL Multimodal Pipeline — Raw EEG + Eye (SEED-IV)
+13:16:14,INFO,============================================================
+13:16:14,INFO,"
+[STEP 1] Loading raw EEG + Eye data..."
+13:16:14,INFO,Session 1: 15 subjects
+13:16:14,INFO,  Subject 10 | 10_20151014.mat
+13:16:16,INFO,  Subject 11 | 11_20150916.mat
+13:16:18,INFO,  Subject 12 | 12_20150725.mat
+13:16:20,INFO,  Subject 13 | 13_20151115.mat
+13:16:22,INFO,  Subject 14 | 14_20151205.mat
+13:16:24,INFO,  Subject 15 | 15_20150508.mat
+13:16:27,INFO,  Subject 1 | 1_20160518.mat
+13:16:28,INFO,  Subject 2 | 2_20150915.mat
+13:16:30,INFO,  Subject 3 | 3_20150919.mat
+13:16:33,INFO,  Subject 4 | 4_20151111.mat
+13:16:35,INFO,  Subject 5 | 5_20160406.mat
+13:16:37,INFO,  Subject 6 | 6_20150507.mat
+13:16:39,INFO,  Subject 7 | 7_20150715.mat
+13:16:41,INFO,  Subject 8 | 8_20151103.mat
+13:16:43,INFO,  Subject 9 | 9_20151028.mat
+13:16:45,INFO,Session 2: 15 subjects
+13:16:45,INFO,  Subject 10 | 10_20151021.mat
+13:16:47,INFO,  Subject 11 | 11_20150921.mat
+13:16:49,INFO,  Subject 12 | 12_20150804.mat
+13:16:51,INFO,  Subject 13 | 13_20151125.mat
+13:16:53,INFO,  Subject 14 | 14_20151208.mat
+13:16:55,INFO,  Subject 15 | 15_20150514.mat
+13:16:57,INFO,  Subject 1 | 1_20161125.mat
+13:16:59,INFO,  Subject 2 | 2_20150920.mat
+13:17:01,INFO,  Subject 3 | 3_20151018.mat
+13:17:03,INFO,  Subject 4 | 4_20151118.mat
+13:17:05,INFO,  Subject 5 | 5_20160413.mat
+13:17:07,INFO,  Subject 6 | 6_20150511.mat
+13:17:09,INFO,  Subject 7 | 7_20150717.mat
+13:17:11,INFO,  Subject 8 | 8_20151110.mat
+13:17:13,INFO,  Subject 9 | 9_20151119.mat
+13:17:15,INFO,Session 3: 15 subjects
+13:17:15,INFO,  Subject 10 | 10_20151023.mat
+13:17:18,INFO,  Subject 11 | 11_20151011.mat
+13:17:19,INFO,  Subject 12 | 12_20150807.mat
+13:17:21,INFO,  Subject 13 | 13_20161130.mat
+13:17:23,INFO,  Subject 14 | 14_20151215.mat
+13:17:25,INFO,  Subject 15 | 15_20150527.mat
+13:17:27,INFO,  Subject 1 | 1_20161126.mat
+13:17:29,INFO,  Subject 2 | 2_20151012.mat
+13:17:31,INFO,  Subject 3 | 3_20151101.mat
+13:17:33,INFO,  Subject 4 | 4_20151123.mat
+13:17:35,INFO,  Subject 5 | 5_20160420.mat
+13:17:37,INFO,  Subject 6 | 6_20150512.mat
+13:17:39,INFO,  Subject 7 | 7_20150721.mat
+13:17:41,INFO,  Subject 8 | 8_20151117.mat
+13:17:43,INFO,  Subject 9 | 9_20151209.mat
+13:20:02,INFO,"EEG: (74565, 62, 800) dtype=float32 | Eye: (74565, 5) | Labels: (74565,)"
+13:20:02,INFO,"EEG: (74565, 62, 800) | Eye: (74565, 5) | y: (74565,) | Subjects: [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15]"
+13:20:02,INFO,"
+[STEP 2] Running GroupKFold cross-validation..."
+13:20:02,INFO,"
+============================================================"
+13:20:02,INFO,Starting 5-Fold GroupKFold DL CV
+13:20:02,INFO,============================================================
+13:20:02,INFO,"
+Fold 1 | Train=59652 Test=14913 | Test subj=[ 5 10 15]"
+13:44:51,INFO,  Fold 1 → Acc=0.2758 | F1=0.1679
+13:44:57,INFO,"
+Fold 2 | Train=59652 Test=14913 | Test subj=[ 4  9 14]"
+14:18:10,INFO,  Fold 2 → Acc=0.2808 | F1=0.1534
+14:18:13,INFO,"
+Fold 3 | Train=59652 Test=14913 | Test subj=[ 3  8 13]"
+14:49:13,INFO,  Fold 3 → Acc=0.2786 | F1=0.1728
+14:49:16,INFO,"
+Fold 4 | Train=59652 Test=14913 | Test subj=[ 2  7 12]"
+15:17:23,INFO,  Fold 4 → Acc=0.2772 | F1=0.1566
+15:17:26,INFO,"
+Fold 5 | Train=59652 Test=14913 | Test subj=[ 1  6 11]"
+15:46:08,INFO,  Fold 5 → Acc=0.2844 | F1=0.1653
+15:46:11,INFO,"
+[STEP 3] Saving metrics..."
+15:46:11,INFO,Saved fold_metrics_dl.csv (5 rows)
+15:46:11,INFO,Saved summary_metrics_dl.csv
+15:46:11,INFO,"
+[STEP 4] Generating plots..."
+15:46:13,INFO,Saved C:\Users\Rose J Thachil\Desktop\8th_sem_project\raw_data_project\obj2\figures\learning_curves.png
+15:46:13,INFO,Saved C:\Users\Rose J Thachil\Desktop\8th_sem_project\raw_data_project\obj2\figures\fold_bars.png
+15:46:13,INFO,"
+[STEP 5] Building PDF report..."
+15:46:13,INFO,PDF saved → C:\Users\Rose J Thachil\Desktop\8th_sem_project\raw_data_project\obj2\dl_report.pdf
+15:46:13,INFO,"
+[STEP 6] Saving structured logs + Markdown report..."
+15:46:13,INFO,Epoch CSV → C:\Users\Rose J Thachil\Desktop\8th_sem_project\raw_data_project\obj2\logs\dl_run_20260423_131614_epochs.csv
+15:46:13,INFO,Epoch JSON → C:\Users\Rose J Thachil\Desktop\8th_sem_project\raw_data_project\obj2\logs\dl_run_20260423_131614_epochs.json
+15:46:13,INFO,Markdown report → C:\Users\Rose J Thachil\Desktop\8th_sem_project\raw_data_project\obj2\logs\dl_run_20260423_131614_report.md
