@@ -1,0 +1,4 @@
+dataset/
+outputs/
+__pycache__/
+*.npy
