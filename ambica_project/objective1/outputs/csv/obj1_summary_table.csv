@@ -1,0 +1,9 @@
+Modality,Model,Accuracy (mean ± std),F1-score (mean ± std)
+Eye,SVM (RBF),70.65% ± 1.98%,70.38% ± 1.98%
+Eye,Random Forest,64.35% ± 2.58%,63.77% ± 2.95%
+Eye,LDA,62.59% ± 1.20%,62.29% ± 1.51%
+EEG,SVM (RBF),61.85% ± 3.60%,61.62% ± 3.72%
+Eye,kNN,61.57% ± 1.82%,60.82% ± 1.85%
+EEG,LDA,57.87% ± 0.65%,57.71% ± 0.78%
+EEG,Random Forest,54.54% ± 2.86%,54.28% ± 3.01%
+EEG,kNN,40.83% ± 3.16%,39.07% ± 3.51%
