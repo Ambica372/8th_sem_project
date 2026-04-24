@@ -1,7 +1,7 @@
 # Results Summary
 
 ## Table 1 — Stratified Results (Window-level)
-*Inflated due to identity leakage (subject overlap).*
+
 
 | Model | Accuracy |
 |:---|:---:|
@@ -12,7 +12,7 @@
 | Decision Fusion | 86.90% |
 
 ## Table 2 — GroupKFold Results (Subject-level)
-*Realistic cross-subject performance (no overlap).*
+
 
 | Model | Mean Accuracy | Std Accuracy |
 |:---|:---:|:---:|
@@ -23,4 +23,4 @@
 | Decision Fusion | 37.82% | 2.59% |
 
 ---
-**Note**: GroupKFold represents the true real-world performance metric for emotion recognition across different individuals.
+
