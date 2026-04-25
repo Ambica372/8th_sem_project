@@ -44,7 +44,7 @@ Two evaluation strategies are used:
 - Input → single model
 - Used in MLP, DNN, Attention, Hybrid
 
-### ⚠️ Decision Fusion (Secondary)
+###  Decision Fusion (Secondary)
 - Separate EEG + Eye models
 - Outputs combined (late fusion)
 - Used only for comparison
@@ -188,14 +188,3 @@ python code/groupkfold_laso_pipeline.py
 - Multimodal fusion improves performance  
 - Deep learning models outperform baselines  
 
-BUT:
-
-Stratified validation overestimates performance due to subject overlap.  
-GroupKFold (LOSO) reveals true model behavior and highlights subject-dependent variability.
-
----
-
-## 🔥 Final Takeaway
-
-High accuracy without subject separation is misleading.  
-True evaluation requires subject-level validation.
