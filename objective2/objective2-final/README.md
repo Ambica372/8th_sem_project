@@ -78,9 +78,7 @@ Two evaluation strategies are used:
 #### Result:
 - Accuracy: **~80–88%**
 
-#### Interpretation:
-- High performance due to window-level splitting  
-- ⚠️ Subject overlap → inflated results  
+
 
 ---
 
