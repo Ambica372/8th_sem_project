@@ -1,0 +1,14 @@
+[Logger] All output is being saved to: C:\Users\Rose J Thachil\Desktop\8th_sem_project\results\stratified_loso\run_20260429_125629.log
+=================================================================
+ LOSO + INNER StratifiedKFold PIPELINE
+ Evaluation uses LOSO (subject-independent validation)
+=================================================================
+[1] Loading data from C:\Users\Rose J Thachil\Desktop\8th_sem_project\ambica_project\processed_data ...
+   Clean samples: 37575  |  Classes: [0 1 2 3]
+
+======================================================================
+  LOSO TRIAL 01/15  |  Test subject=0  |  Train=35070 samples  Test=2505 samples
+======================================================================
+  Training MLP for subject 00 ...
+    Subject 00  MLP  ->  Accuracy: 0.4962
+  Training DNN for subject 00 ...

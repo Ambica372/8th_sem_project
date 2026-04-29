@@ -1,0 +1,6 @@
+model,mean_accuracy,std_accuracy,mean_precision,mean_recall,mean_f1
+MLP,0.4456,0.0754,0.5044,0.4446,0.4155
+DNN,0.4372,0.0617,0.4724,0.4353,0.4105
+Attention,0.4146,0.0782,0.4735,0.4152,0.3822
+Hybrid,0.4391,0.0827,0.4777,0.4382,0.405
+Decision Fusion,0.5088,0.0399,0.5593,0.5059,0.4786

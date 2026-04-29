@@ -1,0 +1,4 @@
+not_great_obj1/
+processed_data/
+__pycache__/
+*.pyc
