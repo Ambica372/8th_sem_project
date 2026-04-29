@@ -290,7 +290,7 @@ def train_with_inner_cv(model, model_name, subj,
                           random_state=RANDOM_STATE)
 
     best_val_acc  = -1.0
-    best_ckpt     = os.path.join(model_dir, "best_subj{}.pth".format(subj))
+    best_ckpt     = os.path.join(model_dir, "best_subj{}.pt".format(subj))
 
     # ---- Inner StratifiedKFold — training / validation only ----
     for inner_k, (tr_idx, val_idx) in enumerate(
@@ -332,7 +332,7 @@ def train_with_inner_cv(model, model_name, subj,
         patience_ctr  = 0
         fold_best_val = 0.0
         fold_ckpt = os.path.join(
-            model_dir, "tmp_subj{}_fold{}.pth".format(subj, inner_k))
+            model_dir, "tmp_subj{}_fold{}.pt".format(subj, inner_k))
 
         for ep in range(EPOCHS):
             model.train()
