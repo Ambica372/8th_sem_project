@@ -1,0 +1,2 @@
+optimizer,opt_accuracy,lr,dropout,hidden_dim,batch_size,weight_decay
+WOA,0.9449,0.00048654,0.2,128,32,0.001711
