@@ -1,0 +1,2 @@
+optimizer,opt_accuracy,lr,dropout,hidden_dim,batch_size,weight_decay
+PSO,0.9929,0.0005,0.2,256,32,0.0002661
